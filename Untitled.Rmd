@@ -1,0 +1,10 @@
+---
+title: "Week4 Practical"
+output: html_document
+date: "2026-11-12"
+---
+
+```{r}
+library(tidyverse)
+```
+
