@@ -1,10 +1,100 @@
 ---
-title: "Week4 Practical"
+title: "Gender inequality change"
 output: html_document
-date: "2026-11-12"
+author: Natig Hasanli
+
 ---
+# Aim
+
+This analysis joins gender inequality data to world country boundaries
+and calculates the change between 2010 and 2019.
+
+#Load packages
 
 ```{r}
-2 + 2
+library(sf)
+library(tidyverse)
+library(janitor)
+library(countrycode)
+```
+
+
+
+```{r}
+gid <- read_csv("week4data/gender_inequality.csv") %>%
+  clean_names()
+
+world <- st_read("week4data/world.geojson") %>%
+  clean_names()
+```
+```{r}
+gid_selected <- gid %>%
+  select(iso3, country, gii_2010, gii_2019) |> 
+  mutate(
+    gii_2010 = as.numeric(gii_2010),
+    gii_2019 = as.numeric(gii_2019)
+  ) |> 
+  filter(!is.na(iso3))
+  
+```
+
+
+```{r}
+world <- world %>%
+  mutate(
+    iso3 = countrycode(
+      country,
+      origin = "country.name",
+      destination = "iso3c"
+      
+    )
+  )
+```
+```{r}
+world |> 
+  st_drop_geometry() |> 
+  filter(is.na(iso3)) |> 
+  select(country)
+  
+```
+```{r}
+world_gii <- merge(
+  world,
+  gid_selected,
+  by = "iso3",
+  all.x = TRUE
+)
+```
+
+
+
+
+```{r}
+world_gii <- world_gii |> 
+  mutate(
+    gii_change = gii_2019 - gii_2010
+  )
+
+```
+
+```{r}
+summary(world_gii$gii_change)
+sum(!is.na(world_gii$gii_change))
+```
+
+```{r}
+world_gii |> 
+  st_drop_geometry() |> 
+  filter(iso3 == "AZE") |> 
+  select(iso3, gii_2010, gii_2019, gii_change)
+  
+```
+
+
+```{r}
+plot(
+  world_gii["gii_change"],
+  main = "Gender Inequality Index Change, 2010-2019"
+)
 ```
 
